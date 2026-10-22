@@ -1,0 +1,17 @@
+{
+  "name": "mulee-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal portfolio website for Mulee",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "mongoose": "^9.11.2",
+    "nodemailer": "^10.1.2"
+  }
+}
