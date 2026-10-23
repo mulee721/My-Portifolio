@@ -18,16 +18,6 @@ const certificateDialog = document.getElementById('certificate-dialog');
 const certificateDialogImage = document.getElementById('certificate-dialog-image');
 const certificateDialogTitle = document.getElementById('certificate-dialog-title');
 const certificateDialogFullSize = document.getElementById('certificate-dialog-full-size');
-const contactEndpoint = (() => {
-  const endpoint = contactForm?.dataset.endpoint || contactForm?.getAttribute('action') || '/api/contact';
-  const origin = window.location.origin;
-  // When the page is opened via file:// or a different dev server (e.g. Live Server on port 5500),
-  // route the request to the Node.js backend running on port 3000.
-  if (!origin || origin === 'null' || origin === 'file://' || !origin.includes(':3000')) {
-    return 'http://localhost:3000' + endpoint;
-  }
-  return endpoint;
-})();
 
 const contactCopies = {
   email: 'mulugetadaba719@gmail.com',
@@ -822,17 +812,87 @@ contactFields.forEach((field) => {
   });
 });
 
+/* ==========================================================================
+   Contact form → email (EmailJS)
+   ========================================================================== */
+const ENV = import.meta.env || {};
+
+/* ==========================================================================
+   Contact form → EmailJS
+   ========================================================================== */
+
+const EMAILJS = {
+  serviceId: 'service_w88mga7',
+  templateId: 'template_m1jb4am',
+  publicKey: 'PesuY2XO-P1pjZkNt'
+};
+
+const SEND_COOLDOWN_MS = 30_000;
+let lastSentAt = 0;
+/** Read a trimmed value from a form field by its name. */
+function getFieldValue(name) {
+  return contactForm.querySelector(`[name="${name}"]`)?.value.trim() || '';
+}
+
+/** Send the message through EmailJS. Param names must match the template's {{variables}}. */
+function sendContactEmail({ name, email, subject, message }) {
+  if (!window.emailjs) {
+    return Promise.reject(new Error('EmailJS SDK did not load.'));
+  }
+  return emailjs.send(
+    EMAILJS.serviceId,
+    EMAILJS.templateId,
+    { name, email, subject, message },
+    { publicKey: EMAILJS.publicKey }
+  );
+}
+
+/** Clear the form and every validation message. */
+function resetContactForm() {
+  contactForm.reset();
+  contactFields.forEach((field) => {
+    field.dataset.touched = 'false';
+    field.setAttribute('aria-invalid', 'false');
+    const errorElement = document.getElementById(`${field.name}-error`);
+    if (errorElement) {
+      errorElement.hidden = true;
+      errorElement.textContent = '';
+    }
+  });
+}
+
+/** Turn an EmailJS / network error into a message the visitor can understand. */
+function getSendErrorMessage(error) {
+  const feedback = getTranslation().feedback;
+
+  if (!navigator.onLine) return 'You appear to be offline. Please check your connection and try again.';
+  if (error?.status === 429) return 'Too many messages were sent. Please try again later.';
+
+  // Wrong IDs/keys (400) or Gmail needs reconnecting (412): a setup problem, not the visitor's fault.
+  if (error?.status === 400 || error?.status === 412) {
+    console.error('EmailJS setup problem:', error.text || error);
+  }
+  return feedback.serverError;
+}
+
+function setSubmitting(isSubmitting, label) {
+  if (!contactSubmitButton) return;
+  contactSubmitButton.disabled = isSubmitting;
+  if (isSubmitting) contactSubmitButton.setAttribute('aria-busy', 'true');
+  else contactSubmitButton.removeAttribute('aria-busy');
+  if (contactSubmitLabel) contactSubmitLabel.textContent = label;
+}
+
 contactForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
-
   if (contactSubmitButton?.disabled) return;
 
+  // 1) Validate every field and focus the first invalid one
   contactFields.forEach((field) => {
     field.dataset.touched = 'true';
     updateContactField(field);
   });
-
-  const firstInvalid = contactFields.find((field) => field.getAttribute('aria-invalid') === 'true');
+  const firstInvalid = contactFields.find((f) => f.getAttribute('aria-invalid') === 'true');
   if (firstInvalid) {
     setFormStatus(getContactFieldError(firstInvalid), 'error');
     firstInvalid.focus();
@@ -840,113 +900,41 @@ contactForm?.addEventListener('submit', async (event) => {
   }
 
   const feedback = getTranslation().feedback;
-  if (contactSubmitButton) {
-    contactSubmitButton.disabled = true;
-    contactSubmitButton.setAttribute('aria-busy', 'true');
+
+  // 2) Honeypot: real visitors never fill this hidden field. Fake success so bots give up.
+  if (getFieldValue('website')) {
+    resetContactForm();
+    setFormStatus(feedback.success, 'success');
+    return;
   }
-  if (contactSubmitLabel) contactSubmitLabel.textContent = feedback.sending;
+
+  // 3) Cooldown against accidental double sends and spam
+  const waitSeconds = Math.ceil((SEND_COOLDOWN_MS - (Date.now() - lastSentAt)) / 1000);
+  if (waitSeconds > 0) {
+    setFormStatus(`Please wait ${waitSeconds}s before sending another message.`, 'error');
+    return;
+  }
+
+  // 4) Send
+  setSubmitting(true, feedback.sending);
   setFormStatus(feedback.sending, 'pending');
 
   try {
-    const response = await fetch(contactEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        name:    contactForm.querySelector('[name="name"]').value.trim(),
-        email:   contactForm.querySelector('[name="email"]').value.trim(),
-        subject: contactForm.querySelector('[name="subject"]').value.trim(),
-        message: contactForm.querySelector('[name="message"]').value.trim(),
-        website: contactForm.querySelector('[name="website"]')?.value.trim() || ''
-      })
+    await sendContactEmail({
+      name:    getFieldValue('name'),
+      email:   getFieldValue('email'),
+      subject: getFieldValue('subject'),
+      message: getFieldValue('message')
     });
 
-    let payload = null;
-    try {
-      payload = await response.json();
-    } catch {
-      payload = null;
-    }
-
-    if (response.ok && payload?.success === true) {
-      contactForm.reset();
-      contactFields.forEach((field) => {
-        field.dataset.touched = 'false';
-        field.setAttribute('aria-invalid', 'false');
-        const errorElement = document.getElementById(`${field.name}-error`);
-        if (errorElement) {
-          errorElement.hidden = true;
-          errorElement.textContent = '';
-        }
-      });
-      setFormStatus(payload.message || feedback.success, 'success');
-      return;
-    }
-
-    if (response.status === 422 && payload?.errors) {
-      Object.entries(payload.errors).forEach(([fieldName, msg]) => {
-        const field = contactForm.querySelector(`[name="${fieldName}"]`);
-        const errorElement = document.getElementById(`${fieldName}-error`);
-        if (field) field.setAttribute('aria-invalid', 'true');
-        if (errorElement) {
-          errorElement.textContent = msg;
-          errorElement.hidden = false;
-        }
-      });
-      setFormStatus('Please correct the highlighted fields.', 'error');
-      return;
-    }
-
-    const backendMessage = payload?.message;
-
-    if (response.status === 503) {
-      setFormStatus(
-        backendMessage ||
-          'Email service is not configured yet. Please email mulugetadaba719@gmail.com directly.',
-        'error'
-      );
-      return;
-    }
-
-    if (response.status === 502) {
-      setFormStatus(
-        backendMessage ||
-          'Email delivery failed. Please email mulugetadaba719@gmail.com directly.',
-        'error'
-      );
-      return;
-    }
-
-    if (response.status === 413) {
-      setFormStatus('Your message is too large. Please shorten it and try again.', 'error');
-      return;
-    }
-
-    if (response.status === 429) {
-      setFormStatus(backendMessage || 'Too many messages were sent. Please try again later.', 'error');
-      return;
-    }
-
-    if (response.status === 404 || response.status === 405) {
-      setFormStatus('This contact form is not available on this deployment yet. Please use the email address in the contact section.', 'error');
-      return;
-    }
-
-    setFormStatus(
-      backendMessage || feedback.serverError,
-      'error'
-    );
+    lastSentAt = Date.now();
+    resetContactForm();
+    setFormStatus(feedback.success, 'success');
   } catch (error) {
-    console.error('Contact form network error:', error);
-    setFormStatus('Network error. Please check your connection and try again.', 'error');
+    console.error('Contact form error:', error);
+    setFormStatus(getSendErrorMessage(error), 'error');
   } finally {
-    if (contactSubmitButton) {
-      contactSubmitButton.disabled = false;
-      contactSubmitButton.removeAttribute('aria-busy');
-    }
-    if (contactSubmitLabel) contactSubmitLabel.textContent = getTranslation().contact.submit;
+    setSubmitting(false, getTranslation().contact.submit);
   }
 });
 

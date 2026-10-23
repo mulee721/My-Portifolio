@@ -1,14 +1,41 @@
 # Mulee Portfolio
 
-The contact form is handled by the Node server in `server.js`; it sends an email notification and, when `MONGODB_URI` is configured, stores each message in MongoDB. It cannot work from a static-only deployment.
+A modern, responsive personal portfolio showcasing my skills, projects, and experience as a **Full-Stack Web Developer and IT Student**.
 
-## Run locally
+### ✨ Features
+- Responsive, modern design
+- Skills and project showcase
+- Contact form with email notifications
+- Optional MongoDB message storage
 
-1. Optional but recommended: create a free MongoDB Atlas cluster, database user, and a database named `mulee_portfolio`. In Atlas Network Access, allow your deployment server's IP address.
-2. Copy `.env.example` to `.env` and set the SMTP values. Add `MONGODB_URI` to retain a searchable database of contact messages. For Gmail, turn on 2-Step Verification and create a Google App Password for `SMTP_PASS`.
-2. Run `npm start`.
-3. Run `npm start`, then open `http://localhost:3000/health`. It should return `{"status":"ok","mailConfigured":true,"databaseConnected":true}`.
+### 🛠️ Tech Stack
+HTML • CSS • JavaScript • Node.js • MongoDB • SMTP
 
-## Deploy
+### 🚀 Run Locally
 
-Deploy this as a Node.js service (for example, Render, Railway, or a VPS), not GitHub Pages or another static-only host. Set the SMTP and MongoDB variables in the host's encrypted environment-variable settings; never upload `.env`, the Gmail app password, or MongoDB credentials. Set the start command to `npm start` and use the host-provided `PORT` variable.
+```bash
+git clone https://github.com/YOUR_USERNAME/YOUR_REPOSITORY.git
+cd YOUR_REPOSITORY
+npm install
+```
+
+Configure your environment variables using `.env.example`, then run:
+
+```bash
+npm start
+```
+
+Visit `http://localhost:3000`.
+
+### 🌐 Deployment
+Deploy as a **Node.js web service** on [Render](https://render.com/) or [Railway](https://railway.com/). Configure your SMTP and optional MongoDB credentials in the hosting platform's environment settings.
+
+**Note:** The contact form requires the backend; static-only hosting will not support its email functionality.
+
+### 👨‍💻 Connect
+- **GitHub:** https://github.com/YOUR_USERNAME
+- **Portfolio:** Add your live website URL here
+
+---
+
+*Built with passion for technology and creative problem-solving.*
