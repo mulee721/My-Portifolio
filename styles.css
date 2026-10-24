@@ -679,12 +679,47 @@ main .section-heading h2 {
   background: linear-gradient(135deg, var(--primary), var(--accent));
 }
 
-.skill-card ul,
+/* ==========================================================================
+   MODIFIED FOR SKILLS ICONS (Replaces the old dot bullet points)
+   ========================================================================== */
+
+/* Keep project cards exactly as they were */
 .project-card ul {
   padding-left: 1.2rem;
   color: var(--muted);
   line-height: 1.8;
 }
+
+/* New styling ONLY for the skills section to use icons */
+.skill-card ul {
+  list-style: none; /* Removes the dots */
+  padding-left: 0;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem; /* Spacing between each skill */
+}
+
+.skill-card li {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem; /* Spacing between the icon and text */
+  color: var(--muted);
+  font-size: 0.95rem;
+  transition: color var(--transition), transform var(--transition);
+}
+
+.skill-card li:hover {
+  color: var(--text);
+  transform: translateX(5px); /* Subtle slide effect when hovered */
+}
+
+.skill-card li i {
+  width: 1.3rem; /* Forces all icons to have the exact same width so text aligns perfectly */
+  text-align: center;
+  font-size: 1.15rem; 
+}
+/* ========================================================================== */
 
 .tag-list {
   display: flex;
@@ -2553,4 +2588,48 @@ body,
 @media (max-width: 560px) {
   .certificate-grid { grid-template-columns: 1fr; }
   .certificate-card__empty { min-height: 12rem; }
+}
+/* Language dropdown */
+.lang-switcher {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.language-select {
+  min-height: 42px;
+  max-width: 180px;
+  padding: 0.65rem 2rem 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 220ms ease,
+              box-shadow 220ms ease;
+}
+
+.language-select:hover,
+.language-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--primary) 15%, transparent);
+}
+
+.language-select option {
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (max-width: 980px) {
+  .language-select {
+    width: fit-content;
+    max-width: 100%;
+  }
 }
