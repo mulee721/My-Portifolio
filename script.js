@@ -154,7 +154,9 @@ const translations = {
 
         ['REST API Project', 'Well-structured API with authentication, CRUD endpoints, and PostgreSQL integration.', ['Authentication', 'CRUD endpoints', 'Database integration']],
 
-        ['Task Management Application', 'Dashboard-driven task workflow with notifications and tracking tools.', ['User dashboard', 'Task tracking', 'Notifications']]
+        ['Amharic to Afaan Oromo NMT', 'Neural Machine Translation system for Amharic to Afaan Oromo language conversion.', ['Text translation', 'Language processing', 'ML integration']],
+
+        ['PHP Project', 'Add your PHP project description here. Update the title, description, and technologies.', ['Update feature 1', 'Update feature 2', 'Update feature 3']]
 
       ],
 
@@ -379,7 +381,9 @@ const translations = {
 
         ['REST API Project', 'API caaseffama gaarii qabu, authentication fi CRUD endpoints waliin.', ['Authentication', 'CRUD endpoints', 'Database waliin hidhiinsa']],
 
-        ['Task Management Application', 'Dashboard hojii, hojii hordoffii fi notification waliin.', ['Dashboard fayyadamaa', 'Hordoffii hojii', 'Notification']]
+        ['Amharic to Afaan Oromo NMT', 'Neural Machine Translation system Amaared irraa Afaan Oromootti jijjiruuf.', ['Hama hidhiinsa', 'Hidhiinsa qubee', 'Walitti hidhiinsa ML']],
+
+        ['PHP Project', 'PHP pirojekta kee bakka jira. Maqaa, ibsa, fi teeknolojiiwwan haaromsiisi.', ['Feature 1 haaromsiisi', 'Feature 2 haaromsiisi', 'Feature 3 haaromsiisi']]
 
       ],
 
@@ -604,7 +608,9 @@ const translations = {
 
         ['REST API Project', 'በግልፅ የተዘጋጀ API ከauthentication እና CRUD endpoints ጋር。', ['Authentication', 'CRUD endpoints', 'የውሂብ ግንኙነት']],
 
-        ['Task Management Application', 'በdashboard የተመራ የስራ አስተዳደር ከnotifications እና tracking መሳሪያዎች ጋር。', ['የተጠቃሚ ዳሽቦርድ', 'የስራ ክትትል', 'ማሳወቂያዎች']]
+        ['Amharic to Afaan Oromo NMT', 'ከአማርኛ ወደ Afaan Oromo የሚተርጉመው Neural Machine Translation ስርዓት።', ['የጽሑፍ ትርጉም', 'የቋንቋ ሂደት', 'ML ቅይጭ']],
+
+        ['PHP Project', 'PHP ፕሮጀክትዎን አገናኙ። ርዕስ፣ መግለጫ እና ቴክኖሎጂዎችን ያዘምኑ።', ['Feature 1 ያዘምኑ', 'Feature 2 ያዘምኑ', 'Feature 3 ያዘምኑ']]
 
       ],
 
@@ -924,31 +930,9 @@ function setupCertificateGallery() {
 
     const trigger = card.querySelector('[data-certificate-trigger]');
 
-    const emptyState = card.querySelector('[data-certificate-empty]');
-
     const title = card.querySelector('h3');
 
-    if (!image || !trigger || !emptyState) return;
-
-    image.addEventListener('load', () => {
-
-      emptyState.hidden = true;
-
-      trigger.hidden = false;
-
-      trigger.disabled = false;
-
-    });
-
-    image.addEventListener('error', () => {
-
-      trigger.hidden = true;
-
-      trigger.disabled = true;
-
-      emptyState.hidden = false;
-
-    });
+    if (!image || !trigger) return;
 
     trigger.addEventListener('click', () => {
 
@@ -1096,17 +1080,16 @@ function setFormStatus(message, state = '') {
 
 function createResumeDownload() {
 
-  const resumeText = `Mulee\nFull-Stack Web Developer\n\nProfessional Summary\nPassionate Full-Stack Developer building modern, scalable, and user-focused web applications with clean code and innovative solutions.\n\nEducation\nJimma University | Bachelor of Information Technology | 3rd Year Student\nExpected Graduation: 2027\n\nHighlights\n- Frontend development\n- Backend systems\n- REST APIs\n- Database design\n- Team collaboration\n`;
-
-  const blob = new Blob([resumeText], { type: 'text/plain;charset=utf-8' });
-
-  const url = URL.createObjectURL(blob);
-
+  // Link to your CV PDF file
+  // Make sure to add your CV as 'cv.pdf' in the root directory
+  
   resumeDownloads.forEach((link) => {
 
-    link.setAttribute('href', url);
+    link.setAttribute('href', 'cv.pdf');
 
-    link.setAttribute('download', 'Mulee-Resume.txt');
+    link.setAttribute('download', 'Mulugeta_Daba_Resume.pdf');
+
+    link.style.cursor = 'pointer';
 
   });
 
